@@ -1,0 +1,38 @@
+name: biblioteca-backend
+
+services:
+  banco-de-dados:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em app/backend/.env}
+      POSTGRES_DB: ${DB_NAME:-biblioteca}
+    volumes:
+      - dados_biblioteca:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-biblioteca}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  biblioteca-api:
+    build: ./app/backend
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      CORS_ORIGIN: ${CORS_ORIGIN:?Defina CORS_ORIGIN em app/backend/.env}
+      DB_HOST: banco-de-dados
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em app/backend/.env}
+      DB_NAME: ${DB_NAME:-biblioteca}
+    ports:
+      - "8000:8000"
+    depends_on:
+      banco-de-dados:
+        condition: service_healthy
+
+volumes:
+  dados_biblioteca:
+    name: biblioteca-dados

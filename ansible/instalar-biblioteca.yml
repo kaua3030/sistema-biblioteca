@@ -1,0 +1,33 @@
+---
+- name: Prepara o servidor e liga o sistema da biblioteca
+  hosts: servidores_biblioteca
+  become: yes
+
+  tasks:
+    # Tarefa 1: Atualiza o Linux com correções de segurança
+    - name: Atualiza o gerenciador de pacotes do Linux
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    # Tarefa 2: Instala o Docker no servidor
+    - name: Garante que o Docker esta instalado na maquina
+      apt:
+        name: docker.io
+        state: present
+
+    # Tarefa 3: Instala o Docker Compose
+    - name: Garante que o Docker Compose esta instalado
+      apt:
+        name: docker-compose
+        state: present
+
+    # Tarefa 4: Copia as configurações dos containers para o servidor
+    - name: Copia o arquivo docker-compose.yml para o servidor
+      copy:
+        src: ../docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+
+    # Tarefa 5: Liga o sistema da biblioteca na nuvem
+    - name: Sobe os containers da biblioteca (Banco, API e Tela)
+      shell: docker-compose -f /home/ubuntu/docker-compose.yml up -d

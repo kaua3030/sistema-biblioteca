@@ -1,0 +1,11 @@
+name: biblioteca-frontend
+
+services:
+  biblioteca-front:
+    build:
+      context: ./app/frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:?Defina VITE_API_URL em app/frontend/.env}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
