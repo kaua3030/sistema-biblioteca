@@ -1,28 +1,49 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { atualizarLivro, cadastrarLivro, excluirLivro, listarLivros } from "./api";
-import type { Livro, LivroForm } from "./types";
+import {
+  atualizarLivro,
+  cadastrarLivro,
+  excluirLivro,
+  listarEmprestimos,
+  listarLivros,
+  registrarDevolucao,
+  registrarEmprestimo
+} from "./api";
+import type { Emprestimo, EmprestimoForm, Livro, LivroForm } from "./types";
 
 const formularioInicial: LivroForm = {
   titulo: "",
   autor: "",
   categoria: "",
-  ano: new Date().getFullYear(),
-  disponivel: true
+  ano: new Date().getFullYear()
 };
+
+function dataInicialDevolucao() {
+  const data = new Date();
+  data.setDate(data.getDate() + 7);
+  return data.toISOString().slice(0, 10);
+}
+
+function formatarData(data: string) {
+  return new Date(`${data.slice(0, 10)}T00:00:00`).toLocaleDateString("pt-BR");
+}
 
 function App() {
   const [livros, setLivros] = useState<Livro[]>([]);
+  const [emprestimos, setEmprestimos] = useState<Emprestimo[]>([]);
   const [formulario, setFormulario] = useState<LivroForm>(formularioInicial);
+  const [formularioEmprestimo, setFormularioEmprestimo] = useState<EmprestimoForm | null>(null);
+  const [livroSelecionado, setLivroSelecionado] = useState<Livro | null>(null);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
+  const [carregandoEmprestimos, setCarregandoEmprestimos] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [salvandoEmprestimo, setSalvandoEmprestimo] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
   async function carregarLivros(termo = "") {
     setCarregando(true);
-    setErro("");
 
     try {
       setLivros(await listarLivros(termo));
@@ -33,11 +54,28 @@ function App() {
     }
   }
 
+  async function carregarEmprestimos() {
+    setCarregandoEmprestimos(true);
+
+    try {
+      setEmprestimos(await listarEmprestimos());
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Erro ao carregar empréstimos");
+    } finally {
+      setCarregandoEmprestimos(false);
+    }
+  }
+
+  async function atualizarDados() {
+    await Promise.all([carregarLivros(busca), carregarEmprestimos()]);
+  }
+
   useEffect(() => {
     carregarLivros();
+    carregarEmprestimos();
   }, []);
 
-  function alterarCampo(campo: keyof LivroForm, valor: string | number | boolean) {
+  function alterarCampo(campo: keyof LivroForm, valor: string | number) {
     setFormulario((atual) => ({ ...atual, [campo]: valor }));
   }
 
@@ -75,8 +113,7 @@ function App() {
       titulo: livro.titulo,
       autor: livro.autor,
       categoria: livro.categoria,
-      ano: livro.ano,
-      disponivel: livro.disponivel
+      ano: livro.ano
     });
     setEditandoId(livro.id);
     setMensagem("");
@@ -95,9 +132,65 @@ function App() {
     try {
       await excluirLivro(livro.id);
       setMensagem("Livro excluído com sucesso");
-      await carregarLivros(busca);
+      await atualizarDados();
     } catch (error) {
       setErro(error instanceof Error ? error.message : "Erro ao excluir livro");
+    }
+  }
+
+  function abrirEmprestimo(livro: Livro) {
+    setLivroSelecionado(livro);
+    setFormularioEmprestimo({
+      livroId: livro.id,
+      leitor: "",
+      dataPrevistaDevolucao: dataInicialDevolucao()
+    });
+    setMensagem("");
+    setErro("");
+  }
+
+  function fecharEmprestimo() {
+    setLivroSelecionado(null);
+    setFormularioEmprestimo(null);
+  }
+
+  async function salvarEmprestimo(event: FormEvent) {
+    event.preventDefault();
+
+    if (!formularioEmprestimo) {
+      return;
+    }
+
+    setSalvandoEmprestimo(true);
+    setMensagem("");
+    setErro("");
+
+    try {
+      await registrarEmprestimo(formularioEmprestimo);
+      setMensagem("Empréstimo registrado com sucesso");
+      fecharEmprestimo();
+      await atualizarDados();
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Erro ao registrar empréstimo");
+    } finally {
+      setSalvandoEmprestimo(false);
+    }
+  }
+
+  async function devolverLivro(emprestimo: Emprestimo) {
+    if (!window.confirm(`Registrar a devolução de “${emprestimo.livroTitulo}”?`)) {
+      return;
+    }
+
+    setMensagem("");
+    setErro("");
+
+    try {
+      await registrarDevolucao(emprestimo.id);
+      setMensagem("Devolução registrada com sucesso");
+      await atualizarDados();
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Erro ao registrar devolução");
     }
   }
 
@@ -111,7 +204,7 @@ function App() {
       <header className="cabecalho">
         <div className="limite">
           <span className="marca">Biblioteca Escolar</span>
-          <p>Cadastro e gerenciamento do acervo</p>
+          <p>Cadastro, empréstimo e gerenciamento do acervo</p>
         </div>
       </header>
 
@@ -171,15 +264,6 @@ function App() {
               />
             </label>
 
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={formulario.disponivel}
-                onChange={(event) => alterarCampo("disponivel", event.target.checked)}
-              />
-              Disponível para empréstimo
-            </label>
-
             <button className="botao principal" type="submit" disabled={salvando}>
               {salvando ? "Salvando..." : editandoId ? "Salvar alterações" : "Cadastrar livro"}
             </button>
@@ -188,6 +272,55 @@ function App() {
 
         {(mensagem || erro) && (
           <div className={erro ? "aviso erro" : "aviso sucesso"}>{erro || mensagem}</div>
+        )}
+
+        {livroSelecionado && formularioEmprestimo && (
+          <section className="painel">
+            <div className="titulo-secao">
+              <div>
+                <span className="etiqueta">Circulação</span>
+                <h2>Registrar empréstimo</h2>
+              </div>
+              <button className="botao secundario" type="button" onClick={fecharEmprestimo}>
+                Cancelar
+              </button>
+            </div>
+
+            <p className="emprestimo-livro">Livro: <strong>{livroSelecionado.titulo}</strong></p>
+
+            <form className="formulario-emprestimo" onSubmit={salvarEmprestimo}>
+              <label className="campo">
+                <span>Nome do leitor</span>
+                <input
+                  value={formularioEmprestimo.leitor}
+                  onChange={(event) => setFormularioEmprestimo({
+                    ...formularioEmprestimo,
+                    leitor: event.target.value
+                  })}
+                  maxLength={120}
+                  required
+                />
+              </label>
+
+              <label className="campo">
+                <span>Previsão de devolução</span>
+                <input
+                  type="date"
+                  min={new Date().toISOString().slice(0, 10)}
+                  value={formularioEmprestimo.dataPrevistaDevolucao}
+                  onChange={(event) => setFormularioEmprestimo({
+                    ...formularioEmprestimo,
+                    dataPrevistaDevolucao: event.target.value
+                  })}
+                  required
+                />
+              </label>
+
+              <button className="botao principal" type="submit" disabled={salvandoEmprestimo}>
+                {salvandoEmprestimo ? "Registrando..." : "Confirmar empréstimo"}
+              </button>
+            </form>
+          </section>
         )}
 
         <section className="painel">
@@ -234,14 +367,69 @@ function App() {
                       <td>{livro.ano}</td>
                       <td>
                         <span className={livro.disponivel ? "status disponivel" : "status indisponivel"}>
-                          {livro.disponivel ? "Disponível" : "Indisponível"}
+                          {livro.disponivel ? "Disponível" : "Emprestado"}
                         </span>
                       </td>
                       <td>
                         <div className="acoes">
+                          {livro.disponivel && (
+                            <button className="emprestar" type="button" onClick={() => abrirEmprestimo(livro)}>
+                              Emprestar
+                            </button>
+                          )}
                           <button type="button" onClick={() => editarLivro(livro)}>Editar</button>
                           <button className="excluir" type="button" onClick={() => removerLivro(livro)}>
                             Excluir
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="painel">
+          <div className="lista-cabecalho">
+            <div>
+              <span className="etiqueta">Circulação</span>
+              <h2>Empréstimos ativos</h2>
+            </div>
+          </div>
+
+          {carregandoEmprestimos ? (
+            <p className="estado">Carregando empréstimos...</p>
+          ) : emprestimos.length === 0 ? (
+            <p className="estado">Nenhum empréstimo ativo.</p>
+          ) : (
+            <div className="tabela-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Livro</th>
+                    <th>Leitor</th>
+                    <th>Empréstimo</th>
+                    <th>Devolução prevista</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emprestimos.map((emprestimo) => (
+                    <tr key={emprestimo.id}>
+                      <td className="livro-titulo">{emprestimo.livroTitulo}</td>
+                      <td>{emprestimo.leitor}</td>
+                      <td>{formatarData(emprestimo.dataEmprestimo)}</td>
+                      <td>{formatarData(emprestimo.dataPrevistaDevolucao)}</td>
+                      <td>
+                        <div className="acoes">
+                          <button
+                            className="devolver"
+                            type="button"
+                            onClick={() => devolverLivro(emprestimo)}
+                          >
+                            Registrar devolução
                           </button>
                         </div>
                       </td>

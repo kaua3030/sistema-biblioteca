@@ -92,6 +92,18 @@ h2 {
   align-items: end;
 }
 
+.formulario-emprestimo {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.emprestimo-livro {
+  margin: -8px 0 20px;
+  color: #4b5563;
+}
+
 .campo {
   display: grid;
   gap: 7px;
@@ -258,8 +270,17 @@ th {
   color: #b32626;
 }
 
+.acoes .emprestar,
+.acoes .devolver {
+  color: #166044;
+}
+
 @media (max-width: 760px) {
   .formulario {
+    grid-template-columns: 1fr;
+  }
+
+  .formulario-emprestimo {
     grid-template-columns: 1fr;
   }
 

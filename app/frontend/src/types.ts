@@ -7,4 +7,20 @@ export interface Livro {
   disponivel: boolean;
 }
 
-export type LivroForm = Omit<Livro, "id">;
+export type LivroForm = Omit<Livro, "id" | "disponivel">;
+
+export interface Emprestimo {
+  id: number;
+  livroId: number;
+  livroTitulo: string;
+  leitor: string;
+  dataEmprestimo: string;
+  dataPrevistaDevolucao: string;
+  dataDevolucao: string | null;
+}
+
+export interface EmprestimoForm {
+  livroId: number;
+  leitor: string;
+  dataPrevistaDevolucao: string;
+}
