@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { ZodError } from "zod";
+import emprestimosRouter from "./routes/emprestimos.js";
 import livrosRouter from "./routes/livros.js";
 
 const app = express();
@@ -13,6 +14,7 @@ app.get("/api/health", (_request, response) => {
 });
 
 app.use("/api/livros", livrosRouter);
+app.use("/api/emprestimos", emprestimosRouter);
 
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
   if (error instanceof ZodError) {

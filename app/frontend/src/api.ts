@@ -1,4 +1,4 @@
-import type { Livro, LivroForm } from "./types";
+import type { Emprestimo, EmprestimoForm, Livro, LivroForm } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -41,4 +41,21 @@ export function atualizarLivro(id: number, livro: LivroForm) {
 
 export function excluirLivro(id: number) {
   return request<void>(`/livros/${id}`, { method: "DELETE" });
+}
+
+export function listarEmprestimos() {
+  return request<Emprestimo[]>("/emprestimos");
+}
+
+export function registrarEmprestimo(emprestimo: EmprestimoForm) {
+  return request<Emprestimo>("/emprestimos", {
+    method: "POST",
+    body: JSON.stringify(emprestimo)
+  });
+}
+
+export function registrarDevolucao(id: number) {
+  return request<Emprestimo>(`/emprestimos/${id}/devolucao`, {
+    method: "PATCH"
+  });
 }

@@ -21,4 +21,23 @@ export async function initializeDatabase() {
       disponivel BOOLEAN NOT NULL DEFAULT TRUE
     )
   `);
+
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS emprestimos (
+      id SERIAL PRIMARY KEY,
+      livro_id INTEGER NOT NULL REFERENCES livros(id) ON DELETE CASCADE,
+      leitor VARCHAR(120) NOT NULL,
+      data_emprestimo DATE NOT NULL DEFAULT CURRENT_DATE,
+      data_prevista_devolucao DATE NOT NULL,
+      data_devolucao DATE,
+      CHECK (data_prevista_devolucao >= data_emprestimo),
+      CHECK (data_devolucao IS NULL OR data_devolucao >= data_emprestimo)
+    )
+  `);
+
+  await database.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS emprestimo_ativo_por_livro
+    ON emprestimos (livro_id)
+    WHERE data_devolucao IS NULL
+  `);
 }

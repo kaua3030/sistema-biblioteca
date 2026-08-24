@@ -8,8 +8,7 @@ const livroSchema = z.object({
   titulo: z.string().trim().min(1, "Informe o título").max(150),
   autor: z.string().trim().min(1, "Informe o autor").max(120),
   categoria: z.string().trim().min(1, "Informe a categoria").max(80),
-  ano: z.coerce.number().int().min(0, "Informe um ano válido"),
-  disponivel: z.boolean().default(true)
+  ano: z.coerce.number().int().min(0, "Informe um ano válido")
 });
 
 function getId(value: string) {
@@ -48,10 +47,10 @@ livrosRouter.get("/:id", async (request, response) => {
 livrosRouter.post("/", async (request, response) => {
   const dados = livroSchema.parse(request.body);
   const resultado = await database.query(
-    `INSERT INTO livros (titulo, autor, categoria, ano, disponivel)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO livros (titulo, autor, categoria, ano)
+     VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [dados.titulo, dados.autor, dados.categoria, dados.ano, dados.disponivel]
+    [dados.titulo, dados.autor, dados.categoria, dados.ano]
   );
 
   return response.status(201).json(resultado.rows[0]);
@@ -62,10 +61,10 @@ livrosRouter.put("/:id", async (request, response) => {
   const dados = livroSchema.parse(request.body);
   const resultado = await database.query(
     `UPDATE livros
-     SET titulo = $1, autor = $2, categoria = $3, ano = $4, disponivel = $5
-     WHERE id = $6
+     SET titulo = $1, autor = $2, categoria = $3, ano = $4
+     WHERE id = $5
      RETURNING *`,
-    [dados.titulo, dados.autor, dados.categoria, dados.ano, dados.disponivel, id]
+    [dados.titulo, dados.autor, dados.categoria, dados.ano, id]
   );
 
   if (resultado.rowCount === 0) {
@@ -77,6 +76,15 @@ livrosRouter.put("/:id", async (request, response) => {
 
 livrosRouter.delete("/:id", async (request, response) => {
   const id = getId(request.params.id);
+  const emprestimoAtivo = await database.query(
+    "SELECT 1 FROM emprestimos WHERE livro_id = $1 AND data_devolucao IS NULL",
+    [id]
+  );
+
+  if (emprestimoAtivo.rowCount) {
+    return response.status(409).json({ erro: "O livro está emprestado" });
+  }
+
   const resultado = await database.query("DELETE FROM livros WHERE id = $1", [id]);
 
   if (resultado.rowCount === 0) {
