@@ -328,4 +328,12 @@ Cada integrante deve realizar pelo menos uma contribuição identificável no hi
 - DevOps/DevSecOps: Docker, Terraform, Ansible, infraestrutura, deploy e controles de segurança.
 - Equipe: README, diagramas, testes, GitHub e compreensão do fluxo completo.
 
-Os papéis indicam a responsabilidade principal, mas todos os integrantes devem compreender a solução e colaborar com a entrega.
+Os papéis indicam a responsabilidade principal, mas todos os integrantes devem compreender a solução e colaborar com a entrega. 
+
+Principais cargos:
+
+Product Owner
+Analista de Raquisitos
+DevOps/devSecOps
+desenvolvedor
+Scrum Master
