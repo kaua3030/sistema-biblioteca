@@ -1,33 +1,141 @@
 ---
-- name: Prepara o servidor e liga o sistema da biblioteca
+- name: Instala o componente da biblioteca em seu servidor
   hosts: servidores_biblioteca
-  become: yes
+  become: true
+
+  vars:
+    biblioteca_origem: "{{ playbook_dir }}/.."
+    biblioteca_destino: /opt/sistema-biblioteca
+    biblioteca_arquivos:
+      backend:
+        - Dockerfile
+        - .dockerignore
+        - package.json
+        - package-lock.json
+        - tsconfig.json
+        - src
+      frontend:
+        - Dockerfile
+        - package.json
+        - package-lock.json
+        - tsconfig.json
+        - tsconfig.app.json
+        - tsconfig.node.json
+        - vite.config.ts
+        - index.html
+        - nginx.conf
+        - src
+    biblioteca_verificacao:
+      backend: http://127.0.0.1:8000/api/health
+      frontend: http://127.0.0.1:3000
+    biblioteca_compose:
+      - docker
+      - compose
+      - --file
+      - "docker-compose.{{ biblioteca_componente }}.yml"
+      - --env-file
+      - "app/{{ biblioteca_componente }}/.env"
+
+  pre_tasks:
+    - name: Verifica o componente definido no inventário
+      ansible.builtin.assert:
+        that:
+          - biblioteca_componente | default('') in ['backend', 'frontend']
+        fail_msg: Defina biblioteca_componente como backend ou frontend no inventário.
+
+    - name: Verifica o sistema operacional suportado
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_version'] is version('22.04', '>=')
+        fail_msg: Este playbook requer Ubuntu 22.04 ou superior com os repositórios universe e updates habilitados.
+
+    - name: Verifica se o arquivo de ambiente foi preparado no computador de controle
+      ansible.builtin.stat:
+        path: "{{ biblioteca_origem }}/app/{{ biblioteca_componente }}/.env"
+      delegate_to: localhost
+      become: false
+      register: biblioteca_env
+
+    - name: Exige a configuração do ambiente antes de instalar os serviços
+      ansible.builtin.assert:
+        that:
+          - biblioteca_env.stat.isreg | default(false)
+        fail_msg: "Crie e configure app/{{ biblioteca_componente }}/.env a partir do .env.example antes de executar."
 
   tasks:
-    # Tarefa 1: Atualiza o Linux com correções de segurança
-    - name: Atualiza o gerenciador de pacotes do Linux
-      apt:
-        update_cache: yes
-        upgrade: dist
-
-    # Tarefa 2: Instala o Docker no servidor
-    - name: Garante que o Docker esta instalado na maquina
-      apt:
-        name: docker.io
+    - name: Instala Docker e os plugins de construção e Compose v2
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-buildx
+          - docker-compose-v2
         state: present
+        update_cache: true
+        cache_valid_time: 3600
 
-    # Tarefa 3: Instala o Docker Compose
-    - name: Garante que o Docker Compose esta instalado
-      apt:
-        name: docker-compose
-        state: present
+    - name: Habilita e inicia o Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
 
-    # Tarefa 4: Copia as configurações dos containers para o servidor
-    - name: Copia o arquivo docker-compose.yml para o servidor
-      copy:
-        src: ../docker-compose.yml
-        dest: /home/ubuntu/docker-compose.yml
+    - name: Cria a estrutura de diretórios do componente
+      ansible.builtin.file:
+        path: "{{ biblioteca_destino }}/app/{{ biblioteca_componente }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
 
-    # Tarefa 5: Liga o sistema da biblioteca na nuvem
-    - name: Sobe os containers da biblioteca (Banco, API e Tela)
-      shell: docker-compose -f /home/ubuntu/docker-compose.yml up -d
+    - name: Copia o Compose correspondente ao servidor
+      ansible.builtin.copy:
+        src: "{{ biblioteca_origem }}/docker-compose.{{ biblioteca_componente }}.yml"
+        dest: "{{ biblioteca_destino }}/docker-compose.{{ biblioteca_componente }}.yml"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copia o código e os arquivos necessários para construir a imagem
+      ansible.builtin.copy:
+        src: "{{ biblioteca_origem }}/app/{{ biblioteca_componente }}/{{ item }}"
+        dest: "{{ biblioteca_destino }}/app/{{ biblioteca_componente }}/"
+        owner: root
+        group: root
+        mode: 'u=rwX,g=rX,o=rX'
+        directory_mode: '0755'
+      loop: "{{ biblioteca_arquivos[biblioteca_componente] }}"
+
+    - name: Copia as variáveis de ambiente com acesso restrito
+      ansible.builtin.copy:
+        src: "{{ biblioteca_origem }}/app/{{ biblioteca_componente }}/.env"
+        dest: "{{ biblioteca_destino }}/app/{{ biblioteca_componente }}/.env"
+        owner: root
+        group: root
+        mode: '0600'
+      no_log: true
+      diff: false
+
+    - name: Valida a configuração do Compose
+      ansible.builtin.command:
+        argv: "{{ biblioteca_compose + ['config', '--quiet'] }}"
+        chdir: "{{ biblioteca_destino }}"
+      changed_when: false
+      no_log: true
+
+    - name: Constrói a imagem e inicia os serviços do componente
+      ansible.builtin.command:
+        argv: "{{ biblioteca_compose + ['up', '--detach', '--build', '--wait', '--wait-timeout', '120'] }}"
+        chdir: "{{ biblioteca_destino }}"
+      changed_when: true
+
+    - name: Aguarda a aplicação responder
+      ansible.builtin.uri:
+        url: "{{ biblioteca_verificacao[biblioteca_componente] }}"
+        status_code: 200
+        use_proxy: false
+      register: biblioteca_resposta
+      until: biblioteca_resposta.status | default(0) == 200
+      retries: 12
+      delay: 5
+      when: not ansible_check_mode
