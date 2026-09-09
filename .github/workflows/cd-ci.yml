@@ -1,0 +1,83 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # 1. Validação do Backend
+  backend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: |
+          cd app/backend
+          npm ci
+
+      - name: Build Backend
+        run: |
+          cd app/backend
+          npm run build --if-present
+
+  # 2. Validação do Frontend
+  frontend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd app/frontend
+          npm ci
+
+      - name: Build Frontend
+        run: |
+          cd app/frontend
+          npm run build
+
+  # 3. Validação do Terraform (Infraestrutura)
+  terraform-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Format Check
+        run: |
+          cd terraform
+          terraform fmt -check
+
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform validate
