@@ -1,3 +1,4 @@
+import { formatarData, textoSituacaoLivro } from "./formatadores";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   atualizarLivro,
@@ -21,10 +22,6 @@ function dataInicialDevolucao() {
   const data = new Date();
   data.setDate(data.getDate() + 7);
   return data.toISOString().slice(0, 10);
-}
-
-function formatarData(data: string) {
-  return new Date(`${data.slice(0, 10)}T00:00:00`).toLocaleDateString("pt-BR");
 }
 
 function App() {
@@ -367,7 +364,7 @@ function App() {
                       <td>{livro.ano}</td>
                       <td>
                         <span className={livro.disponivel ? "status disponivel" : "status indisponivel"}>
-                          {livro.disponivel ? "Disponível" : "Emprestado"}
+                          {textoSituacaoLivro(livro.disponivel)}
                         </span>
                       </td>
                       <td>

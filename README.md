@@ -275,15 +275,30 @@ As credenciais do provedor, região, chave SSH, imagens das máquinas e variáve
 
 ## Configuração com Ansible
 
-O Ansible é responsável por acessar as máquinas criadas, instalar Docker e Docker Compose, copiar ou obter o projeto, configurar cada host e iniciar seus respectivos serviços.
+O playbook configura dois servidores Ubuntu 22.04 ou superior, com os repositórios `universe` e `updates` habilitados. Ele instala Docker, Buildx e Compose v2, copia os arquivos locais necessários para construir as imagens em `/opt/sistema-biblioteca` e verifica se cada aplicação responde após a inicialização.
 
-Após configurar os IPs e a chave SSH em `ansible/inventory.ini`:
+Antes de executar:
+
+1. Configure os dois IPs e a chave SSH em `ansible/inventory.ini`. O grupo `biblioteca_backend` recebe a API e o PostgreSQL; `biblioteca_frontend` recebe a interface.
+2. Prepare `app/backend/.env` e `app/frontend/.env` no computador que executará o Ansible, seguindo os exemplos e a seção de execução em dois computadores. Defina a senha do banco, `CORS_ORIGIN=http://IP_DO_FRONTEND:3000` e `VITE_API_URL=http://IP_DO_BACKEND:8000/api`.
+3. Garanta acesso SSH e permissão de `sudo` nos servidores, além das portas `3000/TCP` no frontend e `8000/TCP` no backend acessíveis aos usuários. O banco permanece na rede interna do Docker.
+
+O playbook usa módulos incluídos no Ansible, sem exigir coleções adicionais. Para validar a sintaxe e conferir os servidores selecionados sem fazer deploy:
+
+```bash
+ansible-playbook -i ansible/inventory.ini ansible/instalar-biblioteca.yml --syntax-check
+ansible-playbook -i ansible/inventory.ini ansible/instalar-biblioteca.yml --list-hosts
+```
+
+Para executar o deploy quando os servidores e as configurações estiverem preparados:
 
 ```bash
 ansible-playbook -i ansible/inventory.ini ansible/instalar-biblioteca.yml
 ```
 
-O fluxo automatizado deve iniciar somente o frontend no host de frontend e somente a API com o PostgreSQL no host de backend.
+Cada servidor utiliza seu próprio `docker-compose.backend.yml` ou `docker-compose.frontend.yml`, com o arquivo `.env` correspondente. Os arquivos `.env` são copiados com acesso restrito ao administrador e sem exibir seu conteúdo nos logs. O código é obtido da pasta local do projeto, portanto a execução do playbook não depende de um novo envio ao GitHub.
+
+Para atualizar apenas um componente, acrescente `--limit biblioteca_backend` ou `--limit biblioteca_frontend` ao comando. Caso o `sudo` exija senha, acrescente `--ask-become-pass`.
 
 ## Segurança e DevSecOps
 
@@ -309,6 +324,22 @@ Validações, consultas parametrizadas, chaves estrangeiras, restrições e tran
 ### Disponibilidade
 
 Os containers utilizam política de reinicialização e health check. O endpoint `/api/health` permite verificar se a API está respondendo.
+
+## Integração contínua
+
+O workflow `.github/workflows/cd-ci.yml` é executado nos pull requests destinados
+à `main` e novamente depois do merge. Ele instala as dependências e executa os
+testes do frontend e do backend. Para os testes de integração, o GitHub Actions
+inicia um PostgreSQL temporário e define:
+
+```env
+TEST_DATABASE_URL=postgresql://biblioteca_test:biblioteca_test@127.0.0.1:5432/biblioteca_test
+```
+
+O banco e essas credenciais existem somente durante o job. O Terraform é
+validado em paralelo aos testes. As imagens Docker do frontend e do backend são
+construídas apenas quando todos os testes e a validação da infraestrutura
+terminam com sucesso. Ao final, o pipeline registra o resultado `SUCCESS`.
 
 ## Gerência de configuração
 
