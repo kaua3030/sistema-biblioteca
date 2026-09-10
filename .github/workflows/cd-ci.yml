@@ -2,82 +2,124 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [main]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # 1. Validação do Backend
-  backend-ci:
+  backend-tests:
+    name: Testes do backend
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: biblioteca_test
+          POSTGRES_PASSWORD: biblioteca_test
+          POSTGRES_DB: biblioteca_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biblioteca_test -d biblioteca_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://biblioteca_test:biblioteca_test@127.0.0.1:5432/biblioteca_test
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Obter código
+        uses: actions/checkout@v7
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "22"
+          cache: npm
           cache-dependency-path: app/backend/package-lock.json
 
-      - name: Install Backend Dependencies
-        run: |
-          cd app/backend
-          npm ci
+      - name: Instalar dependências
+        working-directory: app/backend
+        run: npm ci
 
-      - name: Build Backend
-        run: |
-          cd app/backend
-          npm run build --if-present
+      - name: Executar testes
+        working-directory: app/backend
+        run: npm test
 
-  # 2. Validação do Frontend
-  frontend-ci:
+  frontend-tests:
+    name: Testes do frontend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Obter código
+        uses: actions/checkout@v7
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "22"
+          cache: npm
           cache-dependency-path: app/frontend/package-lock.json
 
-      - name: Install Frontend Dependencies
-        run: |
-          cd app/frontend
-          npm ci
+      - name: Instalar dependências
+        working-directory: app/frontend
+        run: npm ci
 
-      - name: Build Frontend
-        run: |
-          cd app/frontend
-          npm run build
+      - name: Executar testes
+        working-directory: app/frontend
+        run: npm test
 
-  # 3. Validação do Terraform (Infraestrutura)
-  terraform-ci:
+  terraform-validate:
+    name: Validar Terraform
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Obter código
+        uses: actions/checkout@v7
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.5.0
 
-      - name: Terraform Format Check
-        run: |
-          cd terraform
-          terraform fmt -check
+      - name: Verificar formatação
+        working-directory: terraform
+        run: terraform fmt -check
 
-      - name: Terraform Init
-        run: |
-          cd terraform
-          terraform init -backend=false
+      - name: Inicializar Terraform
+        working-directory: terraform
+        run: terraform init -backend=false
 
-      - name: Terraform Validate
-        run: |
-          cd terraform
-          terraform validate
+      - name: Validar configuração
+        working-directory: terraform
+        run: terraform validate
+
+  docker-build:
+    name: Construir imagens Docker
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, terraform-validate]
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
+
+      - name: Construir imagem do backend
+        run: docker build --tag biblioteca-backend:ci app/backend
+
+      - name: Construir imagem do frontend
+        run: >-
+          docker build
+          --build-arg VITE_API_URL=http://localhost:8000/api
+          --tag biblioteca-frontend:ci
+          app/frontend
+
+  pipeline-success:
+    name: Resultado do pipeline
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    steps:
+      - name: Informar sucesso
+        run: echo "SUCCESS"

@@ -325,6 +325,22 @@ Validações, consultas parametrizadas, chaves estrangeiras, restrições e tran
 
 Os containers utilizam política de reinicialização e health check. O endpoint `/api/health` permite verificar se a API está respondendo.
 
+## Integração contínua
+
+O workflow `.github/workflows/cd-ci.yml` é executado nos pull requests destinados
+à `main` e novamente depois do merge. Ele instala as dependências e executa os
+testes do frontend e do backend. Para os testes de integração, o GitHub Actions
+inicia um PostgreSQL temporário e define:
+
+```env
+TEST_DATABASE_URL=postgresql://biblioteca_test:biblioteca_test@127.0.0.1:5432/biblioteca_test
+```
+
+O banco e essas credenciais existem somente durante o job. O Terraform é
+validado em paralelo aos testes. As imagens Docker do frontend e do backend são
+construídas apenas quando todos os testes e a validação da infraestrutura
+terminam com sucesso. Ao final, o pipeline registra o resultado `SUCCESS`.
+
 ## Gerência de configuração
 
 O desenvolvimento é versionado no GitHub com contribuições incrementais. Os commits utilizam uma convenção baseada em tipos como:
