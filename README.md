@@ -368,3 +368,7 @@ Analista de Raquisitos
 DevOps/devSecOps
 desenvolvedor
 Scrum Master
+
+
+## Testes
+Veja o arquivo TESTS.md para instrucoes detalhadas sobre como rodar testes locais e o CI.
