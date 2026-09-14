@@ -7,7 +7,7 @@
 
 ---
 
-## Rodar testes backend (integração com Postgres)
+## Rodar testes backend (integração com Postgres):
 
 1) Subir Postgres de teste:
 docker run --rm -d --name biblioteca-postgres-test \
