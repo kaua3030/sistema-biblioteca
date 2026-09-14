@@ -369,10 +369,6 @@ DevOps/devSecOps
 desenvolvedor
 Scrum Master
 
-
-## Testes
-Veja o arquivo TESTS.md para instrucoes detalhadas sobre como rodar testes locais e o CI.
-
 # Testes e CI (instruções detalhadas)
 
 ## Requisitos
@@ -422,5 +418,4 @@ npm test
 2. iniciar serviço Postgres temporário para testes de integração e exportar TEST_DATABASE_URL;
 3. rodar `npm test` (backend e frontend);
 4. só se os testes passarem → construir imagens/docker; caso contrário → parar o pipeline.
-
 
