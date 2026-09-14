@@ -423,4 +423,4 @@ npm test
 3. rodar `npm test` (backend e frontend);
 4. só se os testes passarem → construir imagens/docker; caso contrário → parar o pipeline.
 
-
+..
