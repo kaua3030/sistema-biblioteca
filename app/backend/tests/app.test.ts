@@ -4,7 +4,7 @@ import app from "../src/app.js";
 describe("API da biblioteca", () => {
   test("deve responder o health check da API", async () => {
     const response = await request(app).get("/api/health");
-
+    
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: "ok" });
   });
