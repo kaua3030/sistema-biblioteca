@@ -14,16 +14,16 @@ Organizar o projeto, validar testes e preparar para apresentação.
 - KAUA (ANALISTA DE REQUISITOS)
 
 ## 📌 Tarefas da Sprint
-- [feito] Criar backlog product
-- [feito] Criar Sprint
-- [feito] Ajustar testes do backend (Jest)
-- [feito] Corrigir erros no arquivo app.test.ts
-- [feito] Validar rota /api/health
-- [feito] Garantir funcionamento dos endpoints
-- [feito] Organizar README com instruções
-- [feito] Criar Product Backlog
-- [feito] Preparar apresentação do sistema
-- [feito] finalizar integraçao com PostgreSQL
+- [feitO: JOAO] Criar backlog product
+- [feito: LUCA] Criar Sprint
+- [feito: JOAO E ERICK] Ajustar testes do backend (Jest)
+- [feito: ERICK] Corrigir erros no arquivo app.test.ts
+- [feito: ERICK] Validar rota /api/health
+- [feito: ERICK] Garantir funcionamento dos endpoints
+- [feito: JOAO] Organizar README com instruções
+- [feito: JOAO] Criar Product Backlog
+- [feito: JOAO ERICK] Preparar apresentação do sistema
+- [feito: ERICK] finalizar integraçao com PostgreSQL
 
 ## ✅ Critério de pronto (Definition of Done)
 
