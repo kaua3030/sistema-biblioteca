@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   backend-tests:
-    name: Testes do backend
+    name: smoke test e teste de regressao
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -53,7 +53,7 @@ jobs:
         run: npm test
 
   frontend-tests:
-    name: Testes do frontend
+    name: sanity test
     runs-on: ubuntu-latest
     steps:
       - name: Obter código
