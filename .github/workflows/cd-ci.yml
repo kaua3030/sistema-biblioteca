@@ -15,94 +15,57 @@ concurrency:
 
 jobs:
   smoke-tests:
-  name: Smoke - API essencial
-  runs-on: ubuntu-latest
-  steps:
-    - name: Obter codigo
-      uses: actions/checkout@v7
+    name: Smoke - API essencial
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
 
-    - name: Configurar Node.js
-      uses: actions/setup-node@v7
-      with:
-        node-version: "22"
-        cache: npm
-        cache-dependency-path: app/backend/package-lock.json
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
 
-    - name: Instalar dependencias
-      working-directory: app/backend
-      run: npm ci
+      - name: Instalar deps
+        working-directory: app/backend
+        run: npm ci
 
-    - name: Executar smoke test
-      working-directory: app/backend
-      run: npm run test:smoke
+      - name: Rodar smoke
+        working-directory: app/backend
+        run: npm run test:smoke
 
-sanity-tests:
-  name: Sanity - validacoes da aplicacao
-  runs-on: ubuntu-latest
-  steps:
-    - name: Obter codigo
-      uses: actions/checkout@v7
+  sanity-tests:
+    name: Sanity - validações
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
 
-    - name: Configurar Node.js
-      uses: actions/setup-node@v7
-      with:
-        node-version: "22"
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
 
-    - name: Instalar dependencias do backend
-      working-directory: app/backend
-      run: npm ci
+      - name: Backend sanity
+        working-directory: app/backend
+        run: npm run test:sanity
 
-    - name: Executar sanity test do backend
-      working-directory: app/backend
-      run: npm run test:sanity
+  regression-tests:
+    name: Regression - PostgreSQL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
 
-    - name: Instalar dependencias do frontend
-      working-directory: app/frontend
-      run: npm ci
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
 
-    - name: Executar sanity test do frontend
-      working-directory: app/frontend
-      run: npm run test:sanity
+      - name: Rodar regression
+        working-directory: app/backend
+        run: npm run test:regression
 
-regression-tests:
-  name: Regression - emprestimos com PostgreSQL
-  runs-on: ubuntu-latest
-  services:
-    postgres:
-      image: postgres:15-alpine
-      env:
-        POSTGRES_USER: biblioteca_test
-        POSTGRES_PASSWORD: biblioteca_test
-        POSTGRES_DB: biblioteca_test
-      ports:
-        - 5432:5432
-      options: >-
-        --health-cmd "pg_isready -U biblioteca_test -d biblioteca_test"
-        --health-interval 5s
-        --health-timeout 5s
-        --health-retries 10
-
-  env:
-    TEST_DATABASE_URL: postgresql://biblioteca_test:biblioteca_test@127.0.0.1:5432/biblioteca_test
-
-  steps:
-    - name: Obter codigo
-      uses: actions/checkout@v7
-
-    - name: Configurar Node.js
-      uses: actions/setup-node@v7
-      with:
-        node-version: "22"
-        cache: npm
-        cache-dependency-path: app/backend/package-lock.json
-
-    - name: Instalar dependencias
-      working-directory: app/backend
-      run: npm ci
-
-    - name: Executar regression test
-      working-directory: app/backend
-      run: npm run test:regression
   frontend-tests:
     name: sanity test
     runs-on: ubuntu-latest
