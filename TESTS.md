@@ -11,13 +11,13 @@
 
 1) Subir Postgres de teste:
 docker run --rm -d --name biblioteca-postgres-test \
-  -e POSTGRES_USER=biblioteca_test \
-  -e POSTGRES_PASSWORD=biblioteca_test \
-  -e POSTGRES_DB=biblioteca_test \
-  -p 127.0.0.1:5433:5432 postgres:15-alpine
+$ docker run --rm -d --name biblioteca-postgres-test -e POSTGRES_USER=biblioteca_test -e POSTGRES_PASSWORD=biblioteca_test -e POSTGRES_DB=biblioteca_test -p 127.0.0.1:5433:5432 postgres:15-alpine
+
+OBS: checar funcionamento: connections;
+$ docker exec biblioteca-postgres-test pg_isready -U biblioteca_test -d biblioteca_test
 
 2) Definir variável de ambiente (Git Bash / WSL):
-export TEST_DATABASE_URL="postgresql://biblioteca_test:biblioteca_test@127.0.0.1:5433/biblioteca_test"
+$ export TEST_DATABASE_URL="postgresql://biblioteca_test:biblioteca_test@127.0.0.1:5433/biblioteca_test"
 
 3) Instalar dependências e rodar testes:
 cd app/backend
@@ -25,7 +25,7 @@ npm install
 npm test
 
 4) Parar o banco de teste:
-docker stop biblioteca-postgres-test
+docker stop biblioteca-postgres-test;
 
 ---
 
