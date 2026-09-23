@@ -9,7 +9,10 @@
     "start": "node dist/server.js",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:unit": "npm test -- --runTestsByPath tests/app.test.ts",
-    "test:integration": "npm test -- --runTestsByPath tests/emprestimos.test.ts"
+    "test:integration": "npm test -- --runTestsByPath tests/emprestimos.test.ts",
+    "test:smoke": "npm test -- --runTestsByPath tests/app.test.ts --testNamePattern=\"health check\" --verbose",
+    "test:sanity": "npm test -- --runTestsByPath tests/app.test.ts --testNamePattern=\"cadastro\" --verbose",
+    "test:regression": "npm test -- --runTestsByPath tests/emprestimos.test.ts --verbose"
   },
   "dependencies": {
     "cors": "^2.8.5",
