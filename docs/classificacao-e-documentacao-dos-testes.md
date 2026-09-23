@@ -2,7 +2,7 @@
 
 **Projeto:** Sistema Biblioteca  
 **Base analisada:** branch `develop` em 23/09/2026.  
-**Escopo:** testes automatizados existentes nesse pacote. Esta documentação não comprova, por si só, a execução local ou a publicação no GitHub.
+**Escopo:** testes automatizados existentes na `develop` e evidências da execução no GitHub Actions. Os comandos locais são instruções de reprodução, não um registro de execução local.
 
 ## Como os testes foram classificados
 
@@ -63,10 +63,18 @@ npm test
 
 O workflow `.github/workflows/cd-ci.yml` do pacote analisado executa os grupos smoke, sanity e regressão com um serviço PostgreSQL; também valida Terraform. A construção das imagens Docker depende da conclusão dessas verificações. Um indicador verde no Actions comprova somente os testes incluídos naquele commit: para a apresentação, guardem o link da execução e o hash do commit correspondente.
 
+## Evidência da falha e da correção
+
+| Etapa | Commit na `develop` | Execução do GitHub Actions | Resultado |
+| --- | --- | --- | --- |
+| Falha proposital | [`0b0b545`](https://github.com/kaua3030/sistema-biblioteca/commit/0b0b545) | [Execução 35886656648](https://github.com/kaua3030/sistema-biblioteca/actions/runs/35886656648) | **Falhou** em `Sanity - validacoes basicas`, na etapa `Executar sanity test do frontend`. |
+| Correção | [`9bc6f77`](https://github.com/kaua3030/sistema-biblioteca/commit/9bc6f77) | [Execução 35886884392](https://github.com/kaua3030/sistema-biblioteca/actions/runs/35886884392) | **Passou**: smoke, sanity, regressão, Terraform e construção Docker. |
+
+Para provocar a falha, a expectativa da data no teste do frontend foi alterada temporariamente de `01/09/2026` para `02/09/2026`. O commit seguinte restaurou `01/09/2026`; o código de produção não foi modificado. A execução vermelha ficou concluída antes do envio da correção.
+
 ## Estado e pendências da documentação
 
 - O pacote analisado já contém **11 testes de backend e 2 de frontend**, superando o mínimo de 2 por camada pedido na atividade.
 - Esta classificação descreve os testes existentes. Os testes adicionais mencionados na conversa da equipe, mas ainda não integrados à `develop`, não estão contados aqui.
-- Os arquivos `TESTS.md` e `CLASSIFICAÇAO.md` do pacote recebido precisam ser revisados: há comandos de terminal misturados ao texto e conteúdo duplicado. Este arquivo pode servir como versão limpa para integrar ao repositório.
-- Ainda é preciso registrar a evidência de uma falha proposital em teste e, depois da correção, de uma execução verde. Uma execução vermelha sem jobs iniciados não demonstra falha de teste.
+- Os arquivos `TESTS.md` e `CLASSIFICAÇAO.md` ainda precisam ser revisados: há comandos de terminal misturados ao texto e conteúdo duplicado. Este arquivo é a versão limpa para consulta e apresentação.
 - Os exemplos de testes de listagem e formulário dos PDFs devem ser implementados se essas funcionalidades foram escolhidas para a Sprint. O requisito mínimo explícito é 2 testes automatizados no backend e 2 no frontend.
