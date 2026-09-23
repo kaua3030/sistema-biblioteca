@@ -2,7 +2,7 @@ import { formatarData, textoSituacaoLivro } from "../src/formatadores.js";
 
 describe("Formatadores do frontend", () => {
   test("deve formatar data no padrao brasileiro", () => {
-    expect(formatarData("2026-09-01")).toBe("02/09/2026");
+    expect(formatarData("2026-09-01")).toBe("01/09/2026");
   });
 
   test("deve mostrar a situacao do livro", () => {
