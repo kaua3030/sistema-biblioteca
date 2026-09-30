@@ -28,7 +28,7 @@ for attempt in range(30):
     try:
         assert request("/health") == {"status": "ok"}
         break
-    except (URLError, TimeoutError):
+    except (URLError, OSError):
         if attempt == 29:
             raise
         time.sleep(1)
