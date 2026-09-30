@@ -66,7 +66,7 @@ O frontend e configurado no build. As tags usam por padrao `http://localhost:800
 
 ## Publicacao da versao 1.0.0
 
-A tag [`v1.0.0`](https://github.com/kaua3030/sistema-biblioteca/releases/tag/v1.0.0) aponta para o commit `38ed0f9` da `develop`. A [execucao do GitHub Actions](https://github.com/kaua3030/sistema-biblioteca/actions/runs/36774841835) terminou aprovada em 30/09/2026, apos testes, validacao Terraform, build e execucao das imagens. O log registra o push das duas imagens:
+A tag [`v1.0.0`](https://github.com/kaua3030/sistema-biblioteca/tree/v1.0.0) aponta para o commit `38ed0f9` da `develop`. A [execucao do GitHub Actions](https://github.com/kaua3030/sistema-biblioteca/actions/runs/36774841835) terminou aprovada em 30/09/2026, apos testes, validacao Terraform, build e execucao das imagens. O log registra o push das duas imagens:
 
 | Imagem no GHCR | Digest publicado |
 | --- | --- |
