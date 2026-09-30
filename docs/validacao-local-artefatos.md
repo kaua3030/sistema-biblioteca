@@ -64,4 +64,13 @@ A autenticacao utiliza `GITHUB_TOKEN` do Actions, com permissao `packages: write
 
 O frontend e configurado no build. As tags usam por padrao `http://localhost:8000/api`, adequada para frontend e backend no mesmo computador; para outro endereco, ajuste o build antes de publicar ou utilize a entrada manual. A disponibilidade e a visibilidade dos pacotes devem ser conferidas pela equipe na primeira publicacao.
 
-**Limite desta entrega:** as imagens foram construidas e executadas localmente. As versoes `1.0.0` e `1.0.1` ainda nao foram publicadas por esta entrega; download e execucao a partir do GHCR pertencem aos itens seguintes.
+## Publicacao da versao 1.0.0
+
+A tag [`v1.0.0`](https://github.com/kaua3030/sistema-biblioteca/releases/tag/v1.0.0) aponta para o commit `38ed0f9` da `develop`. A [execucao do GitHub Actions](https://github.com/kaua3030/sistema-biblioteca/actions/runs/36774841835) terminou aprovada em 30/09/2026, apos testes, validacao Terraform, build e execucao das imagens. O log registra o push das duas imagens:
+
+| Imagem no GHCR | Digest publicado |
+| --- | --- |
+| `ghcr.io/kaua3030/sistema-biblioteca-backend:1.0.0` | `sha256:1d5dff0c8b93ec48438f39c2d219f6fb3bd14bc35085f8a59b815b7f2e7f2424` |
+| `ghcr.io/kaua3030/sistema-biblioteca-frontend:1.0.0` | `sha256:375511cb8e8024733b60abe2a80ef5de3a6be144c42c6a7e3b9007f48de6ce22` |
+
+O download e a execucao das imagens a partir do GHCR, assim como a pequena alteracao e a versao `1.0.1`, continuam como proximos itens. A visibilidade dos pacotes para pessoas sem acesso ao repositorio ainda deve ser conferida.
