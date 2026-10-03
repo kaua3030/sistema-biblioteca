@@ -6,7 +6,7 @@ describe("API da biblioteca", () => {
     const response = await request(app).get("/api/health");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: "ok" });
+    expect(response.body).toEqual({ status: "ok", servico: "biblioteca-api" });
   });
 
   test("deve rejeitar cadastro de livro sem titulo", async () => {

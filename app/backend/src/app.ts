@@ -10,7 +10,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN ?? "http://localhost:3000" }));
 app.use(express.json());
 
 app.get("/api/health", (_request, response) => {
-  response.json({ status: "ok" });
+  response.json({ status: "ok", servico: "biblioteca-api" });
 });
 
 app.use("/api/livros", livrosRouter);
