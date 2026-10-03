@@ -23,21 +23,6 @@ Computador do frontend                Computador do backend
 React + Nginx                         Node.js + Express
 porta 3000          HTTP/JSON         porta 8000
        └──────────────────────────────► API REST
-
-
-### Verificação da API
-
-| Método | Rota | Operação |
-|---|---|---|
-| `GET` | `/api/health` | Confirma que a API está disponível |
-
-Exemplo de resposta:
-
-```json
-{
-  "status": "ok",
-  "servico": "biblioteca-api"
-}
                                             │
                                             ▼
                                       PostgreSQL
@@ -215,6 +200,20 @@ As portas necessárias são:
 - `5432/TCP` permanece restrita à rede interna do Docker.
 
 ## API REST
+
+### Verificação da API
+
+| Método | Rota | Operação |
+|---|---|---|
+| `GET` | `/api/health` | Confirma que a API está disponível |
+
+Exemplo de resposta:
+
+```json
+{
+  "status": "ok",
+  "servico": "biblioteca-api"
+}
 
 ### Livros
 
