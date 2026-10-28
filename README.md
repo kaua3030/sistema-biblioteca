@@ -201,6 +201,20 @@ As portas necessárias são:
 
 ## API REST
 
+### Verificação da API
+
+| Método | Rota | Operação |
+|---|---|---|
+| `GET` | `/api/health` | Confirma que a API está disponível |
+
+Exemplo de resposta:
+
+```json
+{
+  "status": "ok",
+  "servico": "biblioteca-api"
+}
+
 ### Livros
 
 | Método | Rota | Operação |
