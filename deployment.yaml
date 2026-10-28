@@ -1,0 +1,25 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sistema-biblioteca-deployment
+  labels:
+    app: sistema-biblioteca
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sistema-biblioteca
+  template:
+    metadata:
+      labels:
+        app: sistema-biblioteca
+    spec:
+      containers:
+      - name: biblioteca-container
+        image: ghcr.io/kaua3030/sistema-biblioteca:latest
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always
+        env:
+        - name: NODE_ENV
+          value: "production"
