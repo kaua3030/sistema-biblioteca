@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sistema-biblioteca-service
+spec:
+  type: ClusterIP
+  selector:
+    app: sistema-biblioteca
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
