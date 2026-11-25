@@ -201,7 +201,7 @@ function App() {
       <header className="cabecalho">
         <div className="limite">
           <span className="marca">Biblioteca Escolar</span>
-          <p>Cadastro, empréstimo e gerenciamento do acervo</p>
+          <p>Cadastro, empréstimo e gerenciamento do acervo — versão 1.0.1</p>
         </div>
       </header>
 

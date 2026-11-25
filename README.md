@@ -433,3 +433,9 @@ npm test
 3. rodar `npm test` (backend e frontend);
 4. só se os testes passarem → construir imagens/docker; caso contrário → parar o pipeline.
 
+
+
+## Histórico de versões
+
+- **1.0.0:** primeira versão no Kubernetes (imagem única, banco PostgreSQL, 2 réplicas).
+- **1.0.1:** o cabeçalho passa a exibir a versão da aplicação.
